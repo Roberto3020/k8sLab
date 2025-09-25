@@ -1,0 +1,64 @@
+---
+# tasks file for iso
+
+- name: Instalar dependencias para ISO
+  apt:
+    name:
+      - libarchive-tools   # provee bsdtar
+      - xorriso
+      - isolinux
+    state: present
+  become: true
+
+
+- name: Verificar si ya existe la ISO original
+  stat:
+    path: ./debian.iso
+  register: debian_iso
+
+- name: Descargar ISO Debian
+  get_url:
+    url: "{{ debian_iso_url }}"
+    dest: "./debian.iso"
+    mode: '0644'
+  when: not debian_iso.stat.exists
+
+- name: Crear directorio de trabajo
+  file:
+    path: ./iso-extract
+    state: directory
+
+- name: Extraer ISO original
+  command: bsdtar -C ./iso-extract -xf ./debian.iso
+  args:
+    creates: ./iso-extract/isolinux
+
+- name: Copiar preseed.cfg a la ISO
+  copy:
+    src: preseed.cfg
+    dest: ./iso-extract/preseed.cfg
+
+- name: Ajustar permisos de iso-extract
+  file:
+    path: ./iso-extract
+    owner: "{{ ansible_user_id }}"
+    group: "{{ ansible_user_id }}"
+    mode: '0755'
+
+- name: Modificar boot parameters para usar preseed
+  lineinfile:
+    path: ./iso-extract/isolinux/txt.cfg
+    regexp: '^(\s*append\s+.*initrd=.*)$'
+    line: '  append auto=true priority=critical preseed/file=/cdrom/preseed.cfg vga=788 initrd=initrd.gz --- quiet'
+    backrefs: yes
+
+- name: Generar ISO custom
+  command: >
+    xorriso -as mkisofs -o ./debian-custom.iso
+    -J -R -V "Debian Custom"
+    -b isolinux/isolinux.bin
+    -c isolinux/boot.cat
+    -no-emul-boot -boot-load-size 4 -boot-info-table
+    ./iso-extract
+  args:
+    creates: ./debian-custom.iso

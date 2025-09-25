@@ -1,0 +1,12 @@
+- name: Configurar red estática en master
+  copy:
+    dest: /etc/network/interfaces.d/enp0s8.cfg
+    content: |
+      auto enp0s8
+      iface enp0s8 inet static
+        address {{ master_ip if inventory_hostname == "k8s-master" else node1_ip }}
+        netmask 255.255.255.0
+        gateway 192.168.56.1
+
+- name: Reiniciar red
+  command: systemctl restart networking

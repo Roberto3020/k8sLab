@@ -1,0 +1,17 @@
+- name: Instalar dependencias
+  apt:
+    name: [apt-transport-https, ca-certificates, curl, gnupg, lsb-release]
+    state: present
+    update_cache: yes
+
+- name: Instalar Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: Agregar usuario al grupo docker
+  user:
+    name: "{{ ansible_user }}"
+    groups: docker
+    append: yes

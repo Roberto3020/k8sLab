@@ -1,0 +1,13 @@
+- name: Preparar ISO y VMs
+  hosts: localhost
+  roles:
+    - iso
+    - vms
+
+- name: Configurar Kubernetes en el cluster
+  hosts: k8s_cluster
+  become: yes
+  roles:
+    - network
+    - docker
+    - k8s

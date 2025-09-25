@@ -1,0 +1,10 @@
+---
+# Configuración global
+vm_ram: "2048"
+vm_cpus: "2"
+
+master_ip: "192.168.56.10"
+node1_ip: "192.168.56.11"
+
+k8s_version: "1.30.0-1.1"
+docker_version: "5:24.0.9-1~debian.12~bookworm"
